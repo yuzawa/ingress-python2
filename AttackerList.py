@@ -6,8 +6,6 @@
 
 from gmailapi import GmailApi
 
-CLIENT_SECRET_FILE = 'client_secret.json'
-
 def main():
 
     api = GmailApi()
@@ -18,6 +16,16 @@ def main():
     token = ""
 
     list = api.getMailList(user, qstring, number, token)
+
+    messages = list.get('messages', [])
+
+    if not messages:
+        print 'No Messages found.'
+    else:
+        print 'Messages exists'
+        for message in messages:
+            message = api.getMailBody(user, message['id'])
+
 
 if __name__ == '__main__':
     main()

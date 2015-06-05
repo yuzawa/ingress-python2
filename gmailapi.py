@@ -21,11 +21,14 @@ class GmailApi():
 
     def getMailList(self,user,qu,number,page):
 
-#        print("test")
         return self.service.users().messages().list(userId=user,
                                                     q=qu,
                                                     maxResults=number,
                                                     pageToken=page).execute()
+
+    def getMailBody(self,user,id):
+
+        return self.service.users().messages().get(userId=user,id=id).execute()
 
     def __init__(self):
 
