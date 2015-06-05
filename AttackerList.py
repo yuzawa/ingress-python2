@@ -12,20 +12,33 @@ def main():
 
     user = "me"
     qstring = "subject:Ingress Damage Report: Entities attacked by"
-    number = "10"
+    number = "100"
     token = ""
 
-    list = api.getMailList(user, qstring, number, token)
+    for i in range(0,1):
 
-    messages = list.get('messages', [])
+        print ""
+        print 'token: ',
+        print token
 
-    if not messages:
-        print 'No Messages found.'
-    else:
-        print 'Messages exists'
-        for message in messages:
-            message = api.getMailBody(user, message['id'])
+        list = api.getMailList(user, qstring, number, token)
 
+        messages = list.get('messages', [])
+
+        if not messages:
+            print 'No Messages found.'
+        else:
+            print 'Messages exists'
+            for message in messages:
+                message = api.getMailBody(user, message['id'])
+                print(message["snippet"].split(":")[3].split(" ")[3]),
+                print(','),
+                print(message["payload"]["headers"][16]["value"].split(" ")[6]),
+                print(','),
+                print(message["payload"]["headers"][15]["value"])
+
+        token = list.get('nextPageToken')
+        print ""
 
 if __name__ == '__main__':
     main()
