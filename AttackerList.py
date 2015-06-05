@@ -11,11 +11,13 @@ def main():
     api = GmailApi()
 
     user = "me"
-    qstring = "subject:Ingress Damage Report: Entities attacked by"
-    number = "100"
+#    qstring = "subject:Ingress Damage Report: Entities attacked by"
+    qstring = "from:moriy-tky@umin.ac.jp"
+    number = "10"
     token = ""
 
-    for i in range(0,1):
+    while 1:
+#    for i in range(0,1):
 
         print ""
         print 'token: ',
@@ -31,14 +33,22 @@ def main():
             print 'Messages exists'
             for message in messages:
                 message = api.getMailBody(user, message['id'])
-                print(message["snippet"].split(":")[3].split(" ")[3]),
-                print(','),
-                print(message["payload"]["headers"][16]["value"].split(" ")[6]),
-                print(','),
-                print(message["payload"]["headers"][15]["value"])
+#                print(message["snippet"].split(":")[3].split(" ")[3]),
+#                print(','),
+#                print(message["payload"]["headers"][16]["value"].split(" ")[6]),
+#                print(','),
+#                print(message["payload"]["headers"][15]["value"])
+#                print(message["snippet"])
+                for header in message["payload"]["headers"]:
+                    if header["name"] == "Subject":
+                        print header["value"]
+                    if header["name"] == "Date":
+                        print header["value"]
 
         token = list.get('nextPageToken')
         print ""
+        if token == "":
+            break
 
 if __name__ == '__main__':
     main()
