@@ -32,7 +32,7 @@ class GmailApi():
 
     def __init__(self):
 
-        print "temporary"
+#        print "temporary"
         home_dir = os.path.expanduser('~')
         credential_dir = os.path.join(home_dir, '.credentials')
         if not os.path.exists(credential_dir):
