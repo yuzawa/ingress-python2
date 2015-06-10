@@ -1,0 +1,10 @@
+#!/usr/bin/env python
+# -*- encoding: utf-8 -*-
+
+import HTMLParser
+
+class out_link_parser(HTMLParser):
+  def __init__(self):
+    HTMLParser.__init__(self)
+    self.links = {}
+    self.linkurl = ''
