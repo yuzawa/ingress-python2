@@ -94,6 +94,7 @@ def main():
 
 #                            print reportHtml
 
+                damageReport = True
 
                 if damageReport:
                     print mailTime.strftime("%Y/%m/%d %H:%M:%S")
