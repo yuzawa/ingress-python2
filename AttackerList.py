@@ -13,13 +13,15 @@ from gmailapi import GmailApi
 from attackreportparser import AttackReportParser
 
 def analyze_html(reportHtml):
-    print "Inside analyze_html"
+#    print "Inside analyze_html"
+
+    report = dict()
 
     parser = AttackReportParser()
     parser.feed(reportHtml.decode('utf-8'))
     parser.close()
 
-    print parser.strings
+#    print parser.strings
 
     myName = parser.strings[1]
     myFaction = parser.strings[3]
@@ -28,7 +30,7 @@ def analyze_html(reportHtml):
 #    attackedTime = onechord.strftime("%Y/%m/%d %H:%M:%S")
 
     parsedLength = len(parser.strings)
-    print parsedLength
+#    print parsedLength
 
     if "LINK" in parser.strings[9]:
         attackedType = "Link"
@@ -42,6 +44,7 @@ def analyze_html(reportHtml):
 
     elif "Resonator" in parser.strings[15]:
         attackedType = "Resonator and Mod"
+        linkedPortal = ""
         address = parser.strings[10]
         attacker = parser.strings[16]
         if "uncaptured" in parser.strings[20]:
@@ -51,6 +54,7 @@ def analyze_html(reportHtml):
 
     elif "Resonator" in parser.strings[10]:
         attackedType = "Resonator"
+        linkedPortal = ""
         address = parser.strings[8]
         attacker = parser.strings[11]
         if "uncaptured" in parser.strings[17]:
@@ -60,6 +64,7 @@ def analyze_html(reportHtml):
 
     elif "Mod" in parser.strings[10]:
         attackedType = "Mod"
+        linkedPortal = ""
         address = parser.strings[8]
         attacker = parser.strings[11]
         if "uncaptured" in parser.strings[17]:
@@ -67,13 +72,61 @@ def analyze_html(reportHtml):
         else:
             owner = parser.strings[18]
 
-    print attackedType
-    print myName
-    print attacker
-    print myLevel
-    print attackedPortal
-    print owner
+#    print attackedType
+#    print myName
+#    print attacker
+#    print myLevel
+#    print attackedPortal
+#    print owner
 
+    report["attackedType"] = attackedType
+    report["myName"] = myName
+    report["attacker"] = attacker
+    report["myLevel"] = myLevel
+    report["attackedPortal"] = attackedPortal
+    report["owner"] = owner
+    report["linkedPortal"] = linkedPortal
+
+    return report
+
+def analyze_mail(message):
+#    print "inside analyze_mail"
+
+    for header in message["payload"]["headers"]:
+        if header["name"] == "Subject":
+            attackAgent = header["value"].split(" ")[6]
+        if header["name"] == "Date":
+            mailTime = datetime.datetime.strptime(header["value"], "%a, %d %b %Y %H:%M:%S +0000")
+#    print ""
+    for part in message["payload"]["parts"]:
+        for bodyHeader in part["headers"]:
+    #                    if bodyHeader["value"] == "base64":
+    #                        print "Orignal base64"
+    #                        print part["body"]["data"]
+    #                        print "now base64 decoding"
+    #                        print base64.urlsafe_b64decode(part["body"]["data"].encode("utf-8"))
+            if bodyHeader["value"] == "quoted-printable":
+                reportHtml = base64.urlsafe_b64decode(part["body"]["data"].encode("utf-8"))
+
+
+    report = analyze_html(reportHtml)
+    print mailTime.strftime("%Y/%m/%d %H:%M:%S"),
+    print ',',
+
+    print report["attackedType"],
+    print ',',
+    print report["myName"],
+    print ',',
+    print report["attacker"],
+    print ',',
+    print report["myLevel"],
+    print ',',
+    print report["attackedPortal"],
+    print ',',
+    print report["owner"],
+    print ',',
+    print report["linkedPortal"],
+    print ','
 
 
 
@@ -101,28 +154,11 @@ def main():
             print 'No Messages found.'
         else:
             for message in messages:
-                print ""
-                print message['id']
+#                print ""
+#                print message['id']
+
                 message = api.getMailBody(user, message['id'])
-                for header in message["payload"]["headers"]:
-                    if header["name"] == "Subject":
-                        attackAgent = header["value"].split(" ")[6]
-                    if header["name"] == "Date":
-                        mailTime = datetime.datetime.strptime(header["value"], "%a, %d %b %Y %H:%M:%S +0000")
-                print ""
-                for part in message["payload"]["parts"]:
-
-                    for bodyHeader in part["headers"]:
-#                    if bodyHeader["value"] == "base64":
-#                        print "Orignal base64"
-#                        print part["body"]["data"]
-#                        print "now base64 decoding"
-#                        print base64.urlsafe_b64decode(part["body"]["data"].encode("utf-8"))
-                        if bodyHeader["value"] == "quoted-printable":
-                            reportHtml = base64.urlsafe_b64decode(part["body"]["data"].encode("utf-8"))
-#                            print reportHtml
-
-                            analyze_html(reportHtml)
+                analyze_mail(message)
 
         token = list.get('nextPageToken')
         if not token:
