@@ -8,13 +8,11 @@ import codecs
 import base64
 import quopri
 import datetime
-#import HTMLParser
 
+#from lxml import html
+from xml.sax.saxutils import *
 from HTMLParser import HTMLParser
 from gmailapi import GmailApi
-
-#from attackreportparser import AttackReportParser
-#from out_link_parser import AttackReportParser
 
 class out_link_parser(HTMLParser):
 
@@ -48,6 +46,7 @@ def analyze_html(reportHtml):
 
     parser = out_link_parser()
     parser.feed(reportHtml.decode('utf-8'))
+
     dataList = parser.dataList
     url = parser.links[0]
 
@@ -135,19 +134,19 @@ def analyze_mail(message):
             attackAgent = header["value"].split(" ")[6]
         if header["name"] == "Date":
             mailTime = datetime.datetime.strptime(header["value"], "%a, %d %b %Y %H:%M:%S +0000")
-#    print ""
+
     for part in message["payload"]["parts"]:
         for bodyHeader in part["headers"]:
-    #                    if bodyHeader["value"] == "base64":
-    #                        print "Orignal base64"
-    #                        print part["body"]["data"]
-    #                        print "now base64 decoding"
-    #                        print base64.urlsafe_b64decode(part["body"]["data"].encode("utf-8"))
             if bodyHeader["value"] == "quoted-printable":
                 reportHtml = base64.urlsafe_b64decode(part["body"]["data"].encode("utf-8"))
 
+#    report = analyze_html(html.escape(reportHtml))
+#    report = analyze_html(escape(reportHtml, {"'": '&lsquo;'}))
+#    report = analyze_html(escape(reportHtml))
+    report = analyze_html(reportHtml.replace("&#39;","'"))
 
-    report = analyze_html(reportHtml)
+#    print reportHtml.replace("&#39;","¥'").decode('utf-8')
+
     print mailTime.strftime("%Y/%m/%d %H:%M:%S"),
     print ',',
 
@@ -181,6 +180,7 @@ def main():
     user = "me"
 #    qstring = "subject:Ingress Damage Report: Entities attacked by"
 #    qstring = "subject:Ingress Damage Report: Entities attacked by after:2014/10/1 before:2014/10/2"
+#    qstring = "International Lutheran Church subject:Ingress Damage Report: Entities attacked by after:2015/6/1"
     qstring = "subject:Ingress Damage Report: Entities attacked by after:2015/6/1"
     number = "100"
 #    number = "1"
@@ -188,8 +188,8 @@ def main():
 
     sys.stdout = codecs.getwriter('utf_8')(sys.stdout)
 
-    while 1:
-#    for i in range(0,1):
+#    while 1:
+    for i in range(0,1):
 
         list = api.getMailList(user, qstring, number, token)
 
