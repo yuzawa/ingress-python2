@@ -39,91 +39,34 @@ class out_link_parser(HTMLParser):
             self.links.append(self.linkurl)
             self.linkurl = ''
 
-
 def analyze_html(reportHtml):
-#    print "Inside analyze_html"
+    print "Inside analyze_html"
 
     report = dict()
 
+    mailData = []
 
+#    parser = AttackReportParser()
     parser = out_link_parser()
+#    parser = HTMLParser()
     parser.feed(reportHtml.decode('utf-8'))
-    dataList = parser.dataList
-    url = parser.links[0]
+
+    print parser.dataList
+    print parser.links
 
     parser.close()
 
-#    print dataList
 
-    myName = dataList[1]
-    myFaction = dataList[3]
-    myLevel = dataList[5]
-    attackedPortal = dataList[7]
-    address = dataList[9]
+#    print parser.strings
 
-    parsedLength = len(dataList)
+#    myName = parser.strings[1]
+#    myFaction = parser.strings[3]
+#    myLevel = parser.strings[5]
+#    attackedPortal = parser.strings[7]
+#    attackedTime = onechord.strftime("%Y/%m/%d %H:%M:%S")
 
-    if "LINK" in dataList[9]:
-        attackedType = "Link"
-        linkedPortal = dataList[12]
-        address = dataList[13]
-        attacker = dataList[14]
-        if "uncaptured" in dataList[parsedLength-1]:
-            owner = ""
-        else:
-            owner = dataList[parsedLength-1]
-
-    elif "Resonator" in dataList[15]:
-        attackedType = "Resonator and Mod"
-        linkedPortal = ""
-        address = dataList[10]
-        attacker = dataList[16]
-        if "uncaptured" in dataList[20]:
-            owner = ""
-        else:
-            owner = dataList[21]
-
-    elif "Resonator" in dataList[10]:
-        attackedType = "Resonator"
-        linkedPortal = ""
-        address = dataList[8]
-        attacker = dataList[11]
-        if "uncaptured" in dataList[17]:
-            owner = ""
-        else:
-            owner = dataList[18]
-
-    elif "Mod" in dataList[10]:
-        attackedType = "Mod"
-        linkedPortal = ""
-        address = dataList[8]
-        attacker = dataList[11]
-        if "uncaptured" in dataList[17]:
-            owner = ""
-        else:
-            owner = dataList[18]
-
-    else:
-        attackedType = ""
-        linkedPortal = ""
-        address = ""
-        attacker = ""
-        owner = ""
-
-        print dataList
-
-    report["attackedType"] = attackedType
-    report["myName"] = myName
-    report["attacker"] = attacker
-    report["myLevel"] = myLevel
-    report["attackedPortal"] = attackedPortal
-    report["owner"] = owner
-    report["linkedPortal"] = linkedPortal
-    report["address"] = address
-
-    latAndLon = url.split('?')[1].split('&')[1].split('=')[1].split(",")
-    report["latitude"] = latAndLon[0]
-    report["longitude"] = latAndLon[1]
+#    parsedLength = len(parser.strings)
+#    print parsedLength
 
     return report
 
@@ -148,29 +91,6 @@ def analyze_mail(message):
 
 
     report = analyze_html(reportHtml)
-    print mailTime.strftime("%Y/%m/%d %H:%M:%S"),
-    print ',',
-
-    print report["attackedType"],
-    print ',',
-    print report["myName"],
-    print ',',
-    print report["attacker"],
-    print ',',
-    print report["myLevel"],
-    print ',',
-    print report["attackedPortal"],
-    print ',',
-    print report["owner"],
-    print ',',
-    print report["linkedPortal"],
-    print ',',
-    print report["address"],
-    print ',',
-    print report["latitude"],
-    print ',',
-    print report["longitude"],
-    print ','
 
 
 
@@ -182,14 +102,13 @@ def main():
 #    qstring = "subject:Ingress Damage Report: Entities attacked by"
 #    qstring = "subject:Ingress Damage Report: Entities attacked by after:2014/10/1 before:2014/10/2"
     qstring = "subject:Ingress Damage Report: Entities attacked by after:2015/6/1"
-    number = "100"
-#    number = "1"
+    number = "1"
     token = ""
 
     sys.stdout = codecs.getwriter('utf_8')(sys.stdout)
 
-    while 1:
-#    for i in range(0,1):
+#    while 1:
+    for i in range(0,1):
 
         list = api.getMailList(user, qstring, number, token)
 
