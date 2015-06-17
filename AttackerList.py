@@ -121,13 +121,15 @@ def analyze_html(reportHtml):
     report["address"] = address
 
     latAndLon = url.split('?')[1].split('&')[1].split('=')[1].split(",")
-    report["latitude"] = latAndLon[0]
-    report["longitude"] = latAndLon[1]
+    report["latitude"] = latAndLon[0].encode("utf-8")
+    report["longitude"] = latAndLon[1].encode("utf-8")
 
     return report
 
 def analyze_mail(message):
 #    print "inside analyze_mail"
+
+    report = dict()
 
     for header in message["payload"]["headers"]:
         if header["name"] == "Subject":
@@ -140,42 +142,57 @@ def analyze_mail(message):
             if bodyHeader["value"] == "quoted-printable":
                 reportHtml = base64.urlsafe_b64decode(part["body"]["data"].encode("utf-8"))
 
-#    report = analyze_html(html.escape(reportHtml))
-#    report = analyze_html(escape(reportHtml, {"'": '&lsquo;'}))
-#    report = analyze_html(escape(reportHtml))
     report = analyze_html(reportHtml.replace("&#39;","'"))
-
-#    print reportHtml.replace("&#39;","¥'").decode('utf-8')
-
-    print mailTime.strftime("%Y/%m/%d %H:%M:%S"),
-    print ',',
-
-    print report["attackedType"],
-    print ',',
-    print report["myName"],
-    print ',',
-    print report["attacker"],
-    print ',',
-    print report["myLevel"],
-    print ',',
-    print report["attackedPortal"],
-    print ',',
-    print report["owner"],
-    print ',',
-    print report["linkedPortal"],
-    print ',',
-    print report["address"],
-    print ',',
-    print report["latitude"],
-    print ',',
-    print report["longitude"],
-    print ','
+    report["time"] = mailTime.strftime("%Y/%m/%d %H:%M:%S")
 
 
+    return report
+
+def print_stdout(report):
+
+    print report["address"]
+
+#    print'%s¥t%s¥t%s¥t%s¥t%s¥t%s¥t%s¥t%s¥t%s¥t%s' % (mailTime.strftime("%Y/%m/%d %H:%M:%S"),
+#                                                        report["attackedType"],
+#                                                        report["myName"],
+#                                                        report["attacker"],
+#                                                        report["myLevel"],
+#                                                        report["owner"],
+#                                                        report["linkedPortal"],
+#                                                        report["address"],
+#                                                        report["latitude"],
+#                                                        report["longitude"])
+
+#    print u"{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10}".format(
+    print u"{0}{1}{2}{3}{4}{5}{6}{7}{8}{9}{10}{11}{12}{13}{14}{15}{16}{17}{18}{19}{20}".format(
+    report["time"],
+    u",",
+    report["myName"],
+    u",",
+    report["myLevel"],
+    u",",
+    report["attackedType"],
+    u",",
+    report["attacker"],
+    u",",
+    report["attackedPortal"].replace('"', '""').replace(',', '","'),
+    u",",
+    report["linkedPortal"].replace('"', '""').replace(',', '","'),
+    u",",
+    report["owner"],
+    u",",
+    report["address"].replace('"', '""').replace(',', '","'),
+    u",",
+    report["latitude"],
+    u",",
+    report["longitude"]
+    )
 
 def main():
 
     api = GmailApi()
+
+    report = dict()
 
     user = "me"
 #    qstring = "subject:Ingress Damage Report: Entities attacked by"
@@ -188,8 +205,8 @@ def main():
 
     sys.stdout = codecs.getwriter('utf_8')(sys.stdout)
 
-#    while 1:
-    for i in range(0,1):
+    while 1:
+#    for i in range(0,1):
 
         list = api.getMailList(user, qstring, number, token)
 
@@ -203,7 +220,8 @@ def main():
 #                print message['id']
 
                 message = api.getMailBody(user, message['id'])
-                analyze_mail(message)
+                report = analyze_mail(message)
+                print_stdout(report)
 
         token = list.get('nextPageToken')
         if not token:
