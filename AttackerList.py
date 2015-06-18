@@ -61,20 +61,28 @@ def analyze_html(reportHtml):
     attackedPortal = dataList[7]
     address = dataList[9]
 
-    parsedLength = len(dataList)
+#    parsedLength = len(dataList)
+#    print len(dataList)
 
     if "LINK" in dataList[9]:
 
 #        print dataList
 
         attackedType = "Link"
-        linkedPortal = dataList[12]
-        address = dataList[13]
-        attacker = dataList[16]
-        if "uncaptured" in dataList[parsedLength-1]:
-            owner = ""
+        linkedPortal = dataList[10]
+
+        i = 12
+        while "DAMAGE:" not in dataList[i]:
+            i += 2
         else:
-            owner = dataList[parsedLength-1]
+#            print dataList[i]
+#            print i
+            address = dataList[i-1]
+            attacker = dataList[i+2]
+            if "uncaptured" in dataList[i+8]:
+                owner = ""
+            else:
+                owner = dataList[i+9]
 
     elif "Mod" in dataList[13]:
         attackedType = "ResonatorAndMod"
@@ -192,7 +200,8 @@ def main():
 #    qstring = "subject:Ingress Damage Report: Entities attacked by"
 #    qstring = "subject:Ingress Damage Report: Entities attacked by after:2014/10/1 before:2014/10/2"
 #    qstring = "International Lutheran Church subject:Ingress Damage Report: Entities attacked by after:2015/6/1"
-    qstring = "subject:Ingress Damage Report: Entities attacked by after:2015/5/1 before:2015/6/1"
+#    qstring = "subject:Ingress Damage Report: Entities attacked by after:2015/5/1 before:2015/6/1"
+    qstring = "subject:Ingress Damage Report: Entities attacked by after:2015/5/30 before:2015/6/1"
     number = "100"
 #    number = "1"
     token = ""
