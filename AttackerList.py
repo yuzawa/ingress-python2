@@ -8,6 +8,7 @@ import codecs
 import base64
 import quopri
 import datetime
+import re
 
 #from lxml import html
 from xml.sax.saxutils import *
@@ -63,20 +64,23 @@ def analyze_html(reportHtml):
     parsedLength = len(dataList)
 
     if "LINK" in dataList[9]:
+
+#        print dataList
+
         attackedType = "Link"
         linkedPortal = dataList[12]
         address = dataList[13]
-        attacker = dataList[14]
+        attacker = dataList[16]
         if "uncaptured" in dataList[parsedLength-1]:
             owner = ""
         else:
             owner = dataList[parsedLength-1]
 
-    elif "Resonator" in dataList[15]:
-        attackedType = "Resonator and Mod"
+    elif "Mod" in dataList[13]:
+        attackedType = "ResonatorAndMod"
         linkedPortal = ""
-        address = dataList[10]
-        attacker = dataList[16]
+        address = dataList[8]
+        attacker = dataList[11]
         if "uncaptured" in dataList[20]:
             owner = ""
         else:
@@ -148,45 +152,35 @@ def analyze_mail(message):
 
     return report
 
-def print_stdout(report):
+def print_csv(report):
 
-    print report["address"]
+#    print u"{0}{1}{2}{3}{4}{5}{6}{7}{8}{9}{10}{11}{12}{13}{14}{15}{16}{17}{18}{19}{20}".format(
+#    u'"' + report["time"] + u'"',
+#    u',',
+#    u'"' + report["myName"] + u'"',
+#    u",",
+#    u'"' + report["myLevel"] + u'"',
+#    u",",
+#    u'"' + report["attackedType"] + u'"',
+#    u",",
+#    u'"' + report["attacker"] + u'"',
+#    u",",
+#    u'"' + report["attackedPortal"].replace('"', '""') + u'"',
+#    u",",
+#    u'"' + report["linkedPortal"].replace('"', '""') + u'"',
+#    u",",
+#    u'"' + report["owner"] + u'"',
+#    u",",
+#    u'"' + report["address"].replace('"', '""') + u'"',
+#    u",",
+#    u'"' + report["latitude"] + u'"',
+#    u",",
+#    u'"' + report["longitude"] + u'"'
+#    )
 
-#    print'%s¥t%s¥t%s¥t%s¥t%s¥t%s¥t%s¥t%s¥t%s¥t%s' % (mailTime.strftime("%Y/%m/%d %H:%M:%S"),
-#                                                        report["attackedType"],
-#                                                        report["myName"],
-#                                                        report["attacker"],
-#                                                        report["myLevel"],
-#                                                        report["owner"],
-#                                                        report["linkedPortal"],
-#                                                        report["address"],
-#                                                        report["latitude"],
-#                                                        report["longitude"])
-
-#    print u"{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10}".format(
-    print u"{0}{1}{2}{3}{4}{5}{6}{7}{8}{9}{10}{11}{12}{13}{14}{15}{16}{17}{18}{19}{20}".format(
-    report["time"],
-    u",",
-    report["myName"],
-    u",",
-    report["myLevel"],
-    u",",
-    report["attackedType"],
-    u",",
-    report["attacker"],
-    u",",
-    report["attackedPortal"].replace('"', '""').replace(',', '","'),
-    u",",
-    report["linkedPortal"].replace('"', '""').replace(',', '","'),
-    u",",
-    report["owner"],
-    u",",
-    report["address"].replace('"', '""').replace(',', '","'),
-    u",",
-    report["latitude"],
-    u",",
-    report["longitude"]
-    )
+#    print u'"' + report["time"] + u'"' + u','
+#    print report
+    print u'"' + report["time"] + u'"' + u',' + u'"' + report["myName"] + u'"' + u"," + u'"' + report["myLevel"] + u'"' + u"," + u'"' + report["attackedType"] + u'"' + u"," + u'"' + report["attacker"] + u'"' + u"," + u'"' + report["attackedPortal"].replace('"', '""') + u'"' + u"," + u'"' + report["linkedPortal"].replace('"', '""') + u'"' + u"," + u'"' + report["owner"] + u'"' + u"," + u'"' + report["address"].replace('"', '""') + u'"' + u"," + u'"' + report["latitude"] + u'"' + u"," + u'"' + report["longitude"] + u'"'
 
 def main():
 
@@ -198,7 +192,7 @@ def main():
 #    qstring = "subject:Ingress Damage Report: Entities attacked by"
 #    qstring = "subject:Ingress Damage Report: Entities attacked by after:2014/10/1 before:2014/10/2"
 #    qstring = "International Lutheran Church subject:Ingress Damage Report: Entities attacked by after:2015/6/1"
-    qstring = "subject:Ingress Damage Report: Entities attacked by after:2015/6/1"
+    qstring = "subject:Ingress Damage Report: Entities attacked by after:2015/5/1 before:2015/6/1"
     number = "100"
 #    number = "1"
     token = ""
@@ -221,7 +215,7 @@ def main():
 
                 message = api.getMailBody(user, message['id'])
                 report = analyze_mail(message)
-                print_stdout(report)
+                print_csv(report)
 
         token = list.get('nextPageToken')
         if not token:
