@@ -42,6 +42,10 @@ class out_link_parser(HTMLParser):
 def analyze_html(reportHtml):
 #    print "Inside analyze_html"
 
+#    print reportHtml.encode("utf-8")
+#    print reportHtml
+
+
     report = dict()
 
 
@@ -52,6 +56,9 @@ def analyze_html(reportHtml):
     url = parser.links[0]
 
     parser.close()
+
+#    for data in dataList:
+#        print data
 
 #    print dataList
 
@@ -121,7 +128,7 @@ def analyze_html(reportHtml):
         attacker = ""
         owner = ""
 
-        print dataList
+#        print dataList
 
     report["attackedType"] = attackedType
     report["myName"] = myName
@@ -143,6 +150,7 @@ def analyze_mail(message):
 
     report = dict()
 
+
     for header in message["payload"]["headers"]:
         if header["name"] == "Subject":
             attackAgent = header["value"].split(" ")[6]
@@ -155,6 +163,7 @@ def analyze_mail(message):
                 reportHtml = base64.urlsafe_b64decode(part["body"]["data"].encode("utf-8"))
 
     report = analyze_html(reportHtml.replace("&#39;","'"))
+#    report = analyze_html(htmlParser.unescape(reportHtml))
     report["time"] = mailTime.strftime("%Y/%m/%d %H:%M:%S")
 
 
@@ -162,32 +171,6 @@ def analyze_mail(message):
 
 def print_csv(report):
 
-#    print u"{0}{1}{2}{3}{4}{5}{6}{7}{8}{9}{10}{11}{12}{13}{14}{15}{16}{17}{18}{19}{20}".format(
-#    u'"' + report["time"] + u'"',
-#    u',',
-#    u'"' + report["myName"] + u'"',
-#    u",",
-#    u'"' + report["myLevel"] + u'"',
-#    u",",
-#    u'"' + report["attackedType"] + u'"',
-#    u",",
-#    u'"' + report["attacker"] + u'"',
-#    u",",
-#    u'"' + report["attackedPortal"].replace('"', '""') + u'"',
-#    u",",
-#    u'"' + report["linkedPortal"].replace('"', '""') + u'"',
-#    u",",
-#    u'"' + report["owner"] + u'"',
-#    u",",
-#    u'"' + report["address"].replace('"', '""') + u'"',
-#    u",",
-#    u'"' + report["latitude"] + u'"',
-#    u",",
-#    u'"' + report["longitude"] + u'"'
-#    )
-
-#    print u'"' + report["time"] + u'"' + u','
-#    print report
     print u'"' + report["time"] + u'"' + u',' + u'"' + report["myName"] + u'"' + u"," + u'"' + report["myLevel"] + u'"' + u"," + u'"' + report["attackedType"] + u'"' + u"," + u'"' + report["attacker"] + u'"' + u"," + u'"' + report["attackedPortal"].replace('"', '""') + u'"' + u"," + u'"' + report["linkedPortal"].replace('"', '""') + u'"' + u"," + u'"' + report["owner"] + u'"' + u"," + u'"' + report["address"].replace('"', '""') + u'"' + u"," + u'"' + report["latitude"] + u'"' + u"," + u'"' + report["longitude"] + u'"'
 
 def main():
@@ -200,13 +183,14 @@ def main():
 #    qstring = "subject:Ingress Damage Report: Entities attacked by"
 #    qstring = "subject:Ingress Damage Report: Entities attacked by after:2014/10/1 before:2014/10/2"
 #    qstring = "International Lutheran Church subject:Ingress Damage Report: Entities attacked by after:2015/6/1"
+    qstring = "subject:Ingress Damage Report: Entities attacked by after:2016/1/13"
 #    qstring = "subject:Ingress Damage Report: Entities attacked by after:2015/5/1 before:2015/6/1"
-    qstring = "subject:Ingress Damage Report: Entities attacked by after:2015/5/30 before:2015/6/1"
+#    qstring = "makige kankisen subject:Ingress Damage Report: Entities attacked by"
     number = "100"
 #    number = "1"
     token = ""
 
-    sys.stdout = codecs.getwriter('utf_8')(sys.stdout)
+#    sys.stdout = codecs.getwriter('utf_8')(sys.stdout)
 
     while 1:
 #    for i in range(0,1):
