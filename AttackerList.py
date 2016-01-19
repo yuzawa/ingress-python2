@@ -2,6 +2,8 @@
 # -*- coding: utf-8 -*-
 
 import sys
+reload(sys)
+sys.setdefaultencoding("utf-8")
 #sys.path.insert(1, '/Library/Python/2.7/site-packages')
 
 import codecs
@@ -9,12 +11,16 @@ import base64
 import quopri
 import datetime
 import re
+#import urllib
 
 #from lxml import html
 from xml.sax.saxutils import *
 from HTMLParser import HTMLParser
 from gmailapi import GmailApi
 
+from bs4 import BeautifulSoup
+
+'''
 class out_link_parser(HTMLParser):
 
     def __init__(self):
@@ -31,12 +37,73 @@ class out_link_parser(HTMLParser):
             if 'href' in attrs:
                 self.linkurl = attrs['href']
 
-
     def handle_data(self, data):
+        print data
+
         self.dataList.append(data)
         if self.linkurl:
             self.links.append(self.linkurl)
             self.linkurl = ''
+'''
+
+'''
+    def reset(self):
+        HTMLParser.reset(self)
+        self.pages    = []
+        self.text     = []                     # *****
+        self.dataList     = []                     # *****
+        self.links = []
+        self.is_li    = False
+        self.num_as   = 0
+        self.close_a  = False
+        self.close_li = False
+        self.linkurl = ""
+
+    def handle_starttag(self, tag, attrs):
+        if tag == 'li':
+            self.is_li    = True
+            self.close_a  = False
+            self.close_li = False
+
+        if tag == 'a' and self.is_li:
+            if self.num_as < 7:
+                self.num_as += 1
+                self.close_a = False
+            else:
+                self.num_as = 0
+                self.is_li = False
+        if tag == 'a':
+            attrs = dict(attrs)
+            if 'href' in attrs:
+                self.linkurl = attrs['href']
+
+    def handle_endtag(self, tag):
+         if tag == 'a':
+             self.close_a  = True
+         if tag == 'li':
+             self.close_li = True
+             self.num_as   = 0
+             self.pages.append("".join(self.text))      # *****
+             self.text = []                             # *****
+
+    def handle_data(self, data):
+        if self.is_li:
+            if self.num_as == 2 and not self.close_li and not self.close_a:
+                print "found data",  data
+                self.text.append(data)              # *****
+        if self.linkurl:
+            self.links.append(self.linkurl)
+            self.linkurl = ''
+
+    def handle_charref(self, ref):
+        self.handle_entityref("#" + ref)
+
+    def handle_entityref(self, ref):
+        self.handle_data(self.unescape("&%s;" % ref))
+
+    def get_pages(self):
+        return self.pages
+'''
 
 
 def analyze_html(reportHtml):
@@ -44,18 +111,30 @@ def analyze_html(reportHtml):
 
 #    print reportHtml.encode("utf-8")
 #    print reportHtml
-
+#    print reportHtml.decode('utf-8')
 
     report = dict()
 
+    soup = BeautifulSoup(reportHtml, "html.parser")
 
-    parser = out_link_parser()
-    parser.feed(reportHtml.decode('utf-8'))
+#    parser = out_link_parser()
+#    parser.feed(reportHtml.decode('utf-8'))
 
-    dataList = parser.dataList
-    url = parser.links[0]
-
-    parser.close()
+#    dataList = parser.dataList
+#    url = parser.links[0]
+#    url = soup.a.link
+    
+    link = soup.find('a')
+    
+    url = link["href"]
+    
+    dataList = []
+    
+    for string in soup.strings:
+#        print string
+        dataList.append(string)
+ 
+#    parser.close()
 
 #    for data in dataList:
 #        print data
@@ -73,10 +152,12 @@ def analyze_html(reportHtml):
 
     if "LINK" in dataList[9]:
 
-#        print dataList
+#       print dataList
+#        for data in dataList:
+#            print data
 
         attackedType = "Link"
-        linkedPortal = dataList[10]
+        linkedPortal = dataList[10].rstrip(": ")
 
         i = 12
         while "DAMAGE:" not in dataList[i]:
@@ -161,11 +242,15 @@ def analyze_mail(message):
         for bodyHeader in part["headers"]:
             if bodyHeader["value"] == "quoted-printable":
                 reportHtml = base64.urlsafe_b64decode(part["body"]["data"].encode("utf-8"))
+#                reportHtml = part["body"]["data"].encode("utf-8")
+
+#    print reportHtml.encode("utf-8")
 
     report = analyze_html(reportHtml.replace("&#39;","'"))
-#    report = analyze_html(htmlParser.unescape(reportHtml))
+#    report = analyze_html((reportHtml.replace("&#39;","'")).replace("&",""))
     report["time"] = mailTime.strftime("%Y/%m/%d %H:%M:%S")
 
+#    print report
 
     return report
 
@@ -181,16 +266,17 @@ def main():
 
     user = "me"
 #    qstring = "subject:Ingress Damage Report: Entities attacked by"
-#    qstring = "subject:Ingress Damage Report: Entities attacked by after:2014/10/1 before:2014/10/2"
+#    qstring = "subject:Ingress Damage Report: Entities attacked by after:2015/12/30 before:2015/12/31"
 #    qstring = "International Lutheran Church subject:Ingress Damage Report: Entities attacked by after:2015/6/1"
-    qstring = "subject:Ingress Damage Report: Entities attacked by after:2016/1/13"
-#    qstring = "subject:Ingress Damage Report: Entities attacked by after:2015/5/1 before:2015/6/1"
+#    qstring = "subject:Ingress Damage Report: Entities attacked by after:2016/1/17"
+    qstring = "subject:Ingress Damage Report: Entities attacked by after:2015/12/1 before:2016/1/1"
 #    qstring = "makige kankisen subject:Ingress Damage Report: Entities attacked by"
+#    qstring = "Nakonaki subject:Ingress Damage Report: Entities attacked by"
     number = "100"
 #    number = "1"
     token = ""
 
-#    sys.stdout = codecs.getwriter('utf_8')(sys.stdout)
+    sys.stdout = codecs.getwriter('utf_8')(sys.stdout)
 
     while 1:
 #    for i in range(0,1):
