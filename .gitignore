@@ -1,3 +1,17 @@
 
-.gmailapi.py.swp
-client_secret.json
+*.sql
+*.csv
+.??.swp
+client_secret*.json
+*.pyc
+*.html
+a.sh
+bs.py
+message1
+message2
+temp.py
+test.pl
+test.py
+test2.pl
+reportitem.txt
+
