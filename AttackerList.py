@@ -4,7 +4,6 @@
 import sys
 reload(sys)
 sys.setdefaultencoding("utf-8")
-#sys.path.insert(1, '/Library/Python/2.7/site-packages')
 
 import codecs
 import base64
@@ -12,26 +11,26 @@ import quopri
 import datetime
 import re
 
-#from lxml import html
-from xml.sax.saxutils import *
 from HTMLParser import HTMLParser
+
 from gmailapi import GmailApi
 
 from bs4 import BeautifulSoup
 
 
 def analyze_html(reportHtml):
+
     report = dict()
+    dataList = []
 
     soup = BeautifulSoup(reportHtml, "html.parser")
-    link = soup.find('a')
-    url = link["href"]
-    
-    dataList = []
-    
+    url = soup.find('a')["href"]
+
+#    print url
+
     for string in soup.strings:
         dataList.append(string)
- 
+
 #    for data in dataList:
 #        print data
 
@@ -114,18 +113,27 @@ def analyze_html(reportHtml):
 def analyze_mail(message):
     report = dict()
 
+#    print message
 
     for header in message["payload"]["headers"]:
         if header["name"] == "Subject":
             attackAgent = header["value"].split(" ")[6]
         if header["name"] == "Date":
-            mailTime = datetime.datetime.strptime(header["value"], "%a, %d %b %Y %H:%M:%S +0000")
+#            print header["value"]
+#            print header["value"][0:25]
+#            print datetime.datetime.strptime((header["value"][0:20]), "%a, %d %b %Y %H:%M:%S +0000")
+            mailTime = datetime.datetime.strptime(header["value"][0:25], "%a, %d %b %Y %H:%M:%S")
+#            print int(header["value"][26:29])
+#            print mailTime.strftime("%Y/%m/%d %H:%M:%S")
+            mailTime += datetime.timedelta(hours = -int(header["value"][26:29]))
+#            print mailTime.strftime("%Y/%m/%d %H:%M:%S")
 
     for part in message["payload"]["parts"]:
         for bodyHeader in part["headers"]:
-            if bodyHeader["value"] == "quoted-printable":
+            if bodyHeader["value"] == "quoted-printable" or bodyHeader["value"] == "base64":
                 reportHtml = base64.urlsafe_b64decode(part["body"]["data"].encode("utf-8"))
     report = analyze_html(reportHtml.replace("&#39;","'"))
+    
     report["time"] = mailTime.strftime("%Y/%m/%d %H:%M:%S")
 
 #    print report
@@ -143,11 +151,9 @@ def main():
     report = dict()
 
     user = "me"
-#    qstring = "subject:Ingress Damage Report: Entities attacked by"
-#    qstring = "subject:Ingress Damage Report: Entities attacked by after:2015/12/30 before:2015/12/31"
-#    qstring = "International Lutheran Church subject:Ingress Damage Report: Entities attacked by after:2015/6/1"
-#    qstring = "subject:Ingress Damage Report: Entities attacked by after:2016/1/17"
-    qstring = "subject:Ingress Damage Report: Entities attacked by after:2015/12/1 before:2016/1/1"
+#    qstring = "subject:Ingress Damage Report: Entities attacked by after:2016/4/1 before:2016/5/1"
+    qstring = "subject:Ingress Damage Report: Entities attacked by after:2016/4/28 before:2016/4/29"
+#    qstring = "subject:Ingress Damage Report: Entities attacked by after:2016/5/11"
 #    qstring = "makige kankisen subject:Ingress Damage Report: Entities attacked by"
 #    qstring = "Nakonaki subject:Ingress Damage Report: Entities attacked by"
     number = "100"
